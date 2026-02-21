@@ -1,0 +1,6 @@
+• 18:00–19:00: Did overall review of the assignment and analyzed the Json data structure, created project files
+and folders. Confused about how combining name + description for search will work and whether they should be weighted
+equally. No changes yet, still in planning phase.
+
+• 19:00–20:00:
+

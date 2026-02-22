@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Search</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background: #f9f9f9;
+            color: #222;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 24px;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 10px 14px;
+            font-size: 15px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            outline: none;
+            background: white;
+        }
+
+        .search-bar input:focus {
+            border-color: #222;
+        }
+
+        .search-bar button {
+            padding: 10px 22px;
+            font-size: 15px;
+            cursor: pointer;
+            border-radius: 6px;
+            border: none;
+            background: #222;
+            color: white;
+            transition: background 0.2s;
+        }
+
+        .search-bar button:hover {
+            background: #444;
+        }
+
+        #status {
+            color: #888;
+            font-size: 13px;
+            margin-bottom: 12px;
+            min-height: 18px;
+        }
+
+        .result-card {
+            background: white;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: box-shadow 0.2s;
+        }
+
+        .result-card:hover {
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+
+        .result-card h3 {
+            font-size: 16px;
+            margin-bottom: 6px;
+        }
+
+        .result-meta {
+            color: #888;
+            font-size: 13px;
+            margin-bottom: 8px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .in-stock {
+            color: #2a9d2a;
+            font-weight: 500;
+        }
+
+        .out-of-stock {
+            color: #cc3333;
+            font-weight: 500;
+        }
+
+        .result-description {
+            color: #444;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <h1>Product Search</h1>
+
+    <div class="search-bar">
+        <input type="text" id="q" placeholder="Search products..." />
+        <button onclick="search()">Search</button>
+    </div>
+
+    <div id="status"></div>
+    <div id="results"></div>
+
+    <script>
+        async function search() {
+            const q = document.getElementById('q').value.trim()
+            if (!q) return
+
+            document.getElementById('status').textContent = 'Searching...'
+            document.getElementById('results').innerHTML = ''
+
+            try {
+                const res = await fetch('/search?q=' + encodeURIComponent(q))
+                const data = await res.json()
+
+                if (!data.results || data.results.length === 0) {
+                    document.getElementById('status').textContent = 'No results found.'
+                    return
+                }
+
+                document.getElementById('status').textContent =
+                    `Top ${data.results.length} results for "${data.query}"`
+
+                document.getElementById('results').innerHTML = data.results.map((p, i) => `
+                    <div class="result-card">
+                        <h3>${i + 1}. ${p.name}</h3>
+                        <div class="result-meta">
+                            <span>$${p.price}</span>
+                            <span>${p.country}</span>
+                            <span>${p.brand}</span>
+                            <span class="${p.inStock ? 'in-stock' : 'out-of-stock'}">
+                                ${p.inStock ? '✓ In Stock' : '✗ Out of Stock'}
+                            </span>
+                        </div>
+                        <p class="result-description">${p.description.slice(0, 150)}...</p>
+                    </div>
+                `).join('')
+
+            } catch (err) {
+                document.getElementById('status').textContent = 'Something went wrong.'
+            }
+        }
+
+        document.getElementById('q').addEventListener('keydown', e => {
+            if (e.key === 'Enter') search()
+        })
+    </script>
+</body>
+</html>

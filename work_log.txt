@@ -7,3 +7,11 @@ Was unsure whether BM25 alone would handle intent queries like "gift for kids" w
 Decided to use both BM25 and semantic search combined into a hybrid score.
 Implemented input preprocessing (lowercasing, removing special characters, trimming extra spaces).
 
+• 21:00–22:00: Tried to understand how the semantic search actually works under the hood. Learned that embeddings are
+just coordinates in high dimensional space where similar meanings land close together, even though they may not share
+same letters. Once i understood embeddings cosine similarity followed naturally you are just measuring the angle
+between two vectors. So with hybrid search BM25 will catch exact keyword matches, while semantic search will catch
+meaning-based matches that share no words. Better to use together as BM25 wins on precise queries, semantics wins on
+vague queries and can actually be worse at exact keyword matching. No changes made to the code.
+
+• 11:00–12:00:

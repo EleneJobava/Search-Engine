@@ -1,0 +1,14 @@
+# generated files
+embeddings.npy
+
+# python
+__pycache__/
+*.pyc
+.venv/
+
+# env
+.env
+
+# IDE
+.idea/
+.vscode/

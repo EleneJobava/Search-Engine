@@ -2,5 +2,8 @@
 and folders. Confused about how combining name + description for search will work and whether they should be weighted
 equally. No changes yet, still in planning phase.
 
-• 19:00–20:00:
+• 19:00–20:00: Researched ranking approaches for search. Compared BM25 and sentence transformer based semantic search.
+Was unsure whether BM25 alone would handle intent queries like "gift for kids" where no exact words match.
+Decided to use both BM25 and semantic search combined into a hybrid score.
+Implemented input preprocessing (lowercasing, removing special characters, trimming extra spaces).
 

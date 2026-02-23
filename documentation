@@ -1,0 +1,77 @@
+How my search works:
+
+Before the search happens both the query and the product texts are cleaned through the same pipeline.
+Everything is lowercased possessives are stripped and special characters are replaced with empty strings so "cott@@on"
+becomes "cotton". Multiple spaces are collapsed into one. This happens to both the indexed product text at startup and
+to every incoming query at search time, so they are always on the same footing.
+
+BM25
+For search i used Best Match 25 industry-standard keyword ranking algorithm. It works by scoring each product
+based on how often the query words appear in the product text, weighted by how rare those words are across
+the whole dataset. A word like "imereti" that appears in very few products is a stronger signal than a word
+like "made" that appears everywhere. BM25 also penalizes very long product descriptions so that word count
+alone doesn't inflate scores.I chose BM25 as the primary retrieval method because it is fast, well understood requires
+no GPU runs entirely locally and handles exact keyword queries very well. The weakness of BM25 is that it only understands
+words, not meaning. A search for "gift for kids" will score near zero for every product because none of them use those
+exact words. That is where semantic search comes in.
+
+Semantic Search
+The semantic layer uses the all-MiniLM-L6-v2 model from the sentence-transformers library. This is a pre-trained language
+model that converts any text into a list of 384 numbers called an embedding. The key property of these embeddings is that
+texts with similar meaning end up with similar numbers "eco friendly cotton shirt" and "sustainable fabric t-shirt"
+will have embeddings that are very close to each other, even though they share almost no words. At startup all 10,000
+products are encoded into a 10,000 × 384 matrix of embeddings and cached to disk. At search time the query is encoded
+into a single 384-number vector and the similarity between that vector and every product's vector is computed using
+a dot product. Because sentence-transformers produces normalized vectors, the dot product is equivalent to cosine
+similarity and the results are already in the -1 to 1 range.
+
+Hybrid Scoring
+BM25 scores are raw unbounded numbers (they could be 0.3 or 52.7 depending on the dataset). Semantic scores are already
+in a consistent -1 to 1 range. To combine them fairly BM25 scores are normalized to a 0–1 range using min-max normalization.
+Semantic scores do not need normalization because sentence-transformers already returns normalized vectors.
+The final score is: 0.6 × BM25_normalized + 0.4 × semantic_score
+I chose 0.6 / 0.4 weighting because in a product search context exact keyword matches are the stronger signal of intent.
+If someone searches "samegrelo" and a product literally has that in the name, it should rank first.
+The 0.4 semantic weight is a supporting signal that helps surface relevant products when the exact words are not present.
+Equal weighting (0.5 / 0.5) made vague queries work slightly better but hurt precision on keyword queries, so 0.6 / 0.4
+was the better tradeoff.
+
+What I Built vs What I Reused
+
+Built myself:
+* The hybrid search logic combining BM25 and semantic scores with normalization and weighting
+* The input cleaning pipeline (lowercasing, possessive stripping, special character removal, whitespace normalization)
+* The FastAPI application and search endpoint
+* The embedding cache system
+* The test suite
+
+Reused:
+* rank-bm25 — Python implementation of BM25Okapi. I used this because writing BM25 from scratch is well-understood but
+not the interesting part of this assignment.
+* sentence-transformers — library that provides access to pre-trained embedding models. The all-MiniLM-L6-v2 model itself
+was trained by researchers on hundreds of millions of sentences. I used it because training a semantic model from scratch
+would require weeks and massive compute.
+* FastAPI — web framework. I used it because it gives a clean REST API with automatic documentation in very few lines of code.
+* numpy — used for the dot product computation and sort for ranking.
+
+What Works Well and What Is Still Weak
+Works well:
+* Exact keyword queries are fast and precise
+* Intent-based queries like "gift for kids" return semantically relevant results
+* Messy input (casing, special characters, extra spaces) is handled cleanly
+* Startup after the first run is instant due to embedding caching
+
+Still weak or unfinished:
+* Misspellings are not handled. A search for "cottton" will fail BM25 completely and rely entirely on semantic search.
+A fuzzy matching layer or edit-distance correction would fix this.
+* There is no filtering by price, country, brand, or in-stock status. A real store would need faceted filtering on top
+of the ranking.
+* The embedding cache has no automatic invalidation. If the dataset changes you have to manually delete embeddings.npy.
+* The frontend is minimal meaning no pagination, no filters, no highlighted matches.
+* The 0.6 / 0.4 weighting was chosen by manual testing on a handful of queries, not by systematic evaluation.
+A proper evaluation with a labeled test set would give a more principled weighting.
+
+
+
+
+

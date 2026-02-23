@@ -26,7 +26,7 @@ cd Search-Engine
 
 2. Install dependencies
 ```
-pip install fastapi uvicorn rank-bm25 sentence-transformers numpy
+pip install -r requirements.txt
 ```
 
 3. Run the app
@@ -43,7 +43,6 @@ Note on first startup: The first time you run the app, it will download the sent
 ## How to Run Tests
 
 ```
-pip install pytest
 pytest tests/test_search.py -v
 ```
 

@@ -20,8 +20,7 @@ BM25 returns raw scores like 14.3 or 52.7 while semantic search returns cosine s
 rescaling BM25 scores to 0–1 range using min-max formula: (score - min) / (max - min). This way both scores are on
 the same scale and can be combined with weights. Decided on 0.6 BM25 + 0.4 semantic since exact keyword matches matter
 more in product search. Also handled the edge case where all BM25 scores are equal (max - min = 0) to avoid division
-by zero. Semantic scores don't need normalization because sentence-transformers already returns normalized vectors
-so the dot product gives values in 0–1 range directly.
+by zero.
 
 • 15:00–15:30 : Added embedding cache to avoid re-encoding 10,000 products on every restart. Without caching startup took
 60+ seconds which made development painful. Learned that numpy's np.save and np.load can persist the embedding matrix to
@@ -30,9 +29,9 @@ disk and starts instantly. Had to make sure the cache is invalidated if products
 manually if the dataset changes.
 
 • 16:00–17:00: Implemented the main FastAPI application. Decided on FastAPI over a CLI because it gives a real web interface
-which is more impressive for a demo and closer to a real online store experience. Set up a GET /search?q= endpoint which
-is cleaner than POST for search queries since the query is just a parameter, not a request body. Served the frontend
-from a separate templates/index.html file rather than embedding HTML in Python, cleaner separation of concerns.
+which is closer to a real online store experience. Set up a GET /search?q= endpoint which is cleaner than POST for search
+queries since the query is just a parameter, not a request body. Served the frontend from a separate templates/index.html
+file rather than embedding HTML in Python, cleaner separation of concerns.
 Ran into a NotImplementedError because I was using the base BM25 class instead of BM25Okapi,fixed by changing the import.
 Then hit a FileNotFoundError for the HTML template because the path ../templates/index.html was wrong uvicorn runs from
 the project root so the correct path is templates/index.html. After fixing both errors the server started successfully.

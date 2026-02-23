@@ -54,16 +54,8 @@ class SearchEngine:
         semantic_scores = np.dot(self.embeddings, query_embedding.T).flatten()
 
         bm25_norm = normalize(bm25_scores)
-        combined_scores = 0.6 * bm25_norm + 0.4 * semantic_scores
+        semantic_norm = normalize(semantic_scores)
+        combined_scores = 0.6 * bm25_norm + 0.4 * semantic_norm
         top_indices = np.argsort(combined_scores)[::-1][:DEFAULT_RESULTS]
 
         return [self.products[i] for i in top_indices]
-
-
-
-
-
-
-
-
-

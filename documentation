@@ -23,12 +23,13 @@ will have embeddings that are very close to each other, even though they share a
 products are encoded into a 10,000 × 384 matrix of embeddings and cached to disk. At search time the query is encoded
 into a single 384-number vector and the similarity between that vector and every product's vector is computed using
 a dot product. Because sentence-transformers produces normalized vectors, the dot product is equivalent to cosine
-similarity and the results are already in the -1 to 1 range.
+similarity and the results are already in the -1 to 1 range, but normalization is still needed so that both are in same
+range of 0-1.
 
 Hybrid Scoring
 BM25 scores are raw unbounded numbers (they could be 0.3 or 52.7 depending on the dataset). Semantic scores are already
-in a consistent -1 to 1 range. To combine them fairly BM25 scores are normalized to a 0–1 range using min-max normalization.
-Semantic scores do not need normalization because sentence-transformers already returns normalized vectors.
+in a consistent -1 to 1 range. To combine them fairly BM25 scores as well as semantic scores are normalized to a 0–1
+range using min-max normalization.
 The final score is: 0.6 × BM25_normalized + 0.4 × semantic_score
 I chose 0.6 / 0.4 weighting because in a product search context exact keyword matches are the stronger signal of intent.
 If someone searches "samegrelo" and a product literally has that in the name, it should rank first.
@@ -70,8 +71,6 @@ of the ranking.
 * The frontend is minimal meaning no pagination, no filters, no highlighted matches.
 * The 0.6 / 0.4 weighting was chosen by manual testing on a handful of queries, not by systematic evaluation.
 A proper evaluation with a labeled test set would give a more principled weighting.
-
-
 
 
 
